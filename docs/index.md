@@ -104,7 +104,7 @@ def _get_headers(self, data: str) -> dict[str, str]:
 ```
 
 
-## Python client
+## [Python client](https://github.com/nvnv/rozert-python-client/blob/main/rozert_client.py)
 
 Для python3.12 доступен клиент для работы с Rozert Pay API.
 См. rozert_client.py и examples.py
