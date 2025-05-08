@@ -2,6 +2,8 @@
 
 ## Обзор
 
+### [АПИ документация](https://ps-stage.rozert.cloud/redoc/public)
+
 Rozert Pay - это платежный API, который позволяет мерчантам интегрировать различные платежные методы в свои
 приложения. API поддерживает депозиты и выводы средств через различные платежные системы.
 
@@ -9,7 +11,6 @@ Rozert Pay - это платежный API, который позволяет м
 
 * [Paypal](https://ps-stage.rozert.cloud/redoc/public/#tag/PayPal)
 * [PayCash](https://ps-stage.rozert.cloud/redoc/public/#tag/PayCash)
-
 
 ## Базовый флоу взаимодействия
 
@@ -28,7 +29,36 @@ sequenceDiagram
     Rozert->>Merchant: 6. Callback с результатом
 ```
 
+### 1. Создание транзакции
+
+Мерчант создает транзакцию, указывая:
+- Тип транзакции (депозит/вывод)
+- Сумму и валюту
+- ID кошелька
+- Данные пользователя (для PayPal)
+- URL для перенаправления после оплаты
+- URL для получения уведомлений о статусе
+
+### 2. Возврат мерчанту данных для оплаты
+
+В зависимости от платежной системы, API возвращает:
+
+- Данные формы для перенаправления пользователя. [См. поле form](https://ps-stage.rozert.cloud/redoc/public/#tag/Transactions/operation/transaction_retrieve).
+  Например так работает Paypal
+- Инструкции для оплаты (например PayCash). [См поле instruction](https://ps-stage.rozert.cloud/redoc/public/#tag/Transactions/operation/transaction_retrieve).
+- Информацию о созданной транзакции
+
+### 3. Callback уведомления
+
+Rozert Pay отправляет уведомления о статусе транзакции на указанный callback URL. Основные статусы:
+- `pending` - Транзакция в процессе
+- `success` - Транзакция успешно завершена
+- `failed` - Транзакция отклонена
+- `refunded` - Транзакция возвращена
+
 ## Основные компоненты API
+
+### [АПИ документация](https://ps-stage.rozert.cloud/redoc/public)
 
 ### Аутентификация
 
@@ -73,58 +103,6 @@ def _get_headers(self, data: str) -> dict[str, str]:
         return result
 ```
 
-### [АПИ документация](https://ps-stage.rozert.cloud/redoc/public)
-
-### Основные эндпоинты
-
-#### Транзакции
-
-- `POST /api/payment/v1/transaction/` - Создание новой транзакции
-- `GET /api/payment/v1/transaction/{uuid}/` - Получение информации о транзакции
-- `GET /api/payment/v1/transaction/` - Список транзакций
-
-#### Кошельки
-
-- `GET /api/payment/v1/wallet/` - Список кошельков
-- `GET /api/payment/v1/wallet/{id}/` - Информация о кошельке
-
-### Платежные системы
-
-#### PayPal
-
-- `POST /api/payment/v1/paypal/deposit/` - Создание депозита через PayPal
-- `POST /api/payment/v1/paypal/withdraw/` - Создание вывода через PayPal
-
-#### PayCash
-
-- `POST /api/payment/v1/transaction/` - Создание депозита через PayCash
-
-## Процесс интеграции
-
-### 1. Создание транзакции
-
-Мерчант создает транзакцию, указывая:
-- Тип транзакции (депозит/вывод)
-- Сумму и валюту
-- ID кошелька
-- Данные пользователя (для PayPal)
-- URL для перенаправления после оплаты
-- URL для получения уведомлений о статусе
-
-### 2. Обработка ответа
-
-В зависимости от платежной системы, API возвращает:
-- Данные формы для перенаправления пользователя (PayPal)
-- Инструкции для оплаты (PayCash)
-- Информацию о созданной транзакции
-
-### 3. Callback уведомления
-
-Rozert Pay отправляет уведомления о статусе транзакции на указанный callback URL. Основные статусы:
-- `pending` - Транзакция в процессе
-- `success` - Транзакция успешно завершена
-- `failed` - Транзакция отклонена
-- `refunded` - Транзакция возвращена
 
 ## Python client
 
@@ -185,3 +163,5 @@ response = client.start_deposit(
         url="/api/payment/v1/paycash/deposit/",
     )
 ```
+
+
