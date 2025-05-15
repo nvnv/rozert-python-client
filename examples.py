@@ -1,12 +1,13 @@
 import os
 import pprint
+import typing as ty
 from concurrent.futures import ThreadPoolExecutor
+from decimal import Decimal
 from os import getenv
 from threading import Lock
+from uuid import UUID
 
-from rozert_client import DepositRequest
-
-from rozert_client import RozertClient
+from rozert_client import RozertClient, DepositRequest, TransactionData
 
 
 # BEGIN rozert_client.init
@@ -21,15 +22,15 @@ client = RozertClient(
 # END rozert_client.init
 
 
-def deposit_paypal_example():
+def deposit_paypal_example() -> TransactionData:
     # Create deposit request
 
     # BEGIN rozert_client.deposit.paypal
     response = client.start_deposit(
         request=DepositRequest(
             # Wallet id provided by Rozert
-            wallet_id=getenv("ROZERT_PAYPAL_SANDBOX_WALLET_ID", "<wallet id provided by rozert>"),
-            amount=100,
+            wallet_id=UUID(getenv("ROZERT_PAYPAL_SANDBOX_WALLET_ID", "<wallet id provided by rozert>")),
+            amount=Decimal(100),
             currency="MXN",
             callback_url="https://merchant.com/callback",
             user_data={
@@ -53,15 +54,15 @@ def deposit_paypal_example():
     return response
 
 
-def deposit_paycash_example():
+def deposit_paycash_example() -> TransactionData:
     # Create deposit request
 
     # BEGIN rozert_client.deposit.paycash
     response = client.start_deposit(
         request=DepositRequest(
             # Wallet id provided by Rozert
-            wallet_id=getenv("ROZERT_PAYCASH_SANDBOX_WALLET_ID", "<wallet id provided by rozert>"),
-            amount=100,
+            wallet_id=UUID(getenv("ROZERT_PAYCASH_SANDBOX_WALLET_ID", "<wallet id provided by rozert>")),
+            amount=Decimal(100),
             currency="MXN",
             callback_url="https://merchant.com/callback",
         ),
@@ -77,7 +78,7 @@ def deposit_paycash_example():
 lock = Lock()
 
 
-def run_with_error_log(func):
+def run_with_error_log(func: ty.Callable) -> None:  # type: ignore[type-arg]
     try:
         func()
     except Exception as e:
@@ -88,7 +89,7 @@ def run_with_error_log(func):
 
 if __name__ == '__main__':
     with ThreadPoolExecutor(100) as pool:
-        pool.submit(run_with_error_log(deposit_paypal_example))
-        pool.submit(run_with_error_log(deposit_paycash_example))
+        pool.submit(run_with_error_log, deposit_paypal_example)
+        pool.submit(run_with_error_log, deposit_paycash_example)
 
         pool.shutdown(wait=True)
